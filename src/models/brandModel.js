@@ -6,7 +6,7 @@ exports.getBrands = async () => {
 };
 
 exports.getBrandById = async (id) => {
-  const { data, error } = await supabase.from('brands').select('*').eq('id', id);
+  const { data, error } = await supabase.from('brands').select('*').eq('brand_id', id);
   return { data, error };
 };
 
@@ -16,11 +16,11 @@ exports.createBrand = async (brand) => {
 };
 
 exports.updateBrand = async (id, brand) => {
-  const { data, error } = await supabase.from('brands').update(brand).eq('id', id);
+  const { data, error } = await supabase.from('brands').update(brand).eq('brand_id', id);
   return { data, error };
 };
 
 exports.deleteBrand = async (id) => {
-  const { data, error } = await supabase.from('brands').delete().eq('id', id);
+  const { data, error } = await supabase.from('brands').delete().eq('brand_id', id);
   return { data, error };
 };
