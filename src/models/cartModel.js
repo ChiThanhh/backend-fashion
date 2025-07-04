@@ -11,12 +11,12 @@ exports.getCartById = async (id) => {
 };
 
 exports.createCart = async (cart) => {
-  const { data, error } = await supabase.from('carts').insert(cart);
+  const { data, error } = await supabase.from('carts').insert(cart).select().single();
   return { data, error };
 };
 
 exports.updateCart = async (id, cart) => {
-  const { data, error } = await supabase.from('carts').update(cart).eq('cart_id', id);
+  const { data, error } = await supabase.from('carts').update(cart).eq('cart_id', id).select().single();
   return { data, error };
 };
 

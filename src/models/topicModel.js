@@ -11,12 +11,12 @@ exports.getTopicById = async (id) => {
 };
 
 exports.createTopic = async (topic) => {
-  const { data, error } = await supabase.from('topics').insert(topic);
+  const { data, error } = await supabase.from('topics').insert(topic).select().single();
   return { data, error };
 };
 
 exports.updateTopic = async (id, topic) => {
-  const { data, error } = await supabase.from('topics').update(topic).eq('topic_id', id);
+  const { data, error } = await supabase.from('topics').update(topic).eq('topic_id', id).select().single();
   return { data, error };
 };
 

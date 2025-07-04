@@ -18,6 +18,7 @@ const orderItemRoutes = require('./src/routes/orderItemRoutes')
 const shippingRoutes = require('./src/routes/shippingRoutes')
 const paymentRoutes = require('./src/routes/paymentRoutes')
 const settingRoutes = require('./src/routes/settingRoutes')
+const fileRoutes = require('./src/routes/fileRoutes');
 require('dotenv').config()
 
 const app = express()
@@ -42,6 +43,9 @@ app.use('/api/order-detail', orderItemRoutes)
 app.use('/api/shipping', shippingRoutes)
 app.use('/api/payment', paymentRoutes)
 app.use('/api/setting', settingRoutes)
+app.use('/api/file', fileRoutes)
+
+
 
 // Middleware xử lý lỗi 404 (Not Found)
 app.use((req, res, next) => {

@@ -11,12 +11,12 @@ exports.getCategoryById = async (id) => {
 };
 
 exports.createCategory = async (category) => {
-  const { data, error } = await supabase.from('categories').insert(category);
+  const { data, error } = await supabase.from('categories').insert(category).select().single();
   return { data, error };
 };
 
 exports.updateCategory = async (id, category) => {
-  const { data, error } = await supabase.from('categories').update(category).eq('category_id', id);
+  const { data, error } = await supabase.from('categories').update(category).eq('category_id', id).select().single(); 
   return { data, error };
 };
 

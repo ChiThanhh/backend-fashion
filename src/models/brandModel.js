@@ -11,12 +11,12 @@ exports.getBrandById = async (id) => {
 };
 
 exports.createBrand = async (brand) => {
-  const { data, error } = await supabase.from('brands').insert(brand);
+  const { data, error } = await supabase.from('brands').insert(brand).select().single();
   return { data, error };
 };
 
 exports.updateBrand = async (id, brand) => {
-  const { data, error } = await supabase.from('brands').update(brand).eq('brand_id', id);
+  const { data, error } = await supabase.from('brands').update(brand).eq('brand_id', id).select().single();
   return { data, error };
 };
 

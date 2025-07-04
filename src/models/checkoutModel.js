@@ -14,13 +14,13 @@ exports.getCheckoutById = async (id) => {
 
 // Tạo mới đơn thanh toán
 exports.createCheckout = async (checkout) => {
-  const { data, error } = await supabase.from('checkouts').insert(checkout);
+  const { data, error } = await supabase.from('checkouts').insert(checkout).select().single();
   return { data, error };
 };
 
 // Cập nhật đơn thanh toán
 exports.updateCheckout = async (id, checkout) => {
-  const { data, error } = await supabase.from('checkouts').update(checkout).eq('checkout_id', id);
+  const { data, error } = await supabase.from('checkouts').update(checkout).eq('checkout_id', id).select().single();
   return { data, error };
 };
 

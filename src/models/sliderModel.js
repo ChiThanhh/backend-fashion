@@ -11,12 +11,12 @@ exports.getSliderById = async (id) => {
 };
 
 exports.createSlider = async (slider) => {
-  const { data, error } = await supabase.from('sliders').insert(slider);
+  const { data, error } = await supabase.from('sliders').insert(slider).select().single();
   return { data, error };
 };
 
 exports.updateSlider = async (id, slider) => {
-  const { data, error } = await supabase.from('sliders').update(slider).eq('slider_id', id);
+  const { data, error } = await supabase.from('sliders').update(slider).eq('slider_id', id).select().single();
   return { data, error };
 };
 

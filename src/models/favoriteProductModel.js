@@ -11,12 +11,12 @@ exports.getFavoriteProductById = async (id) => {
 };
 
 exports.createFavoriteProduct = async (favoriteProduct) => {
-  const { data, error } = await supabase.from('favorite_products').insert(favoriteProduct); 
+  const { data, error } = await supabase.from('favorite_products').insert(favoriteProduct).select().single(); 
   return { data, error };
 };
 
 exports.updateFavoriteProduct = async (id, favoriteProduct) => {
-  const { data, error } = await supabase.from('favorite_products').update(favoriteProduct).eq('favorite_id', id);  
+  const { data, error } = await supabase.from('favorite_products').update(favoriteProduct).eq('favorite_id', id).select().single();  
   return { data, error };
 };
 

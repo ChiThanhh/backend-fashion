@@ -11,12 +11,12 @@ exports.getMenuById = async (id) => {
 }
 
 exports.createMenu = async (menu) => {
-  const { data, error } = await supabase.from('menus').insert(menu)
+  const { data, error } = await supabase.from('menus').insert(menu).select().single();
   return { data, error }
 }
 
 exports.updateMenu = async (id, menu) => {
-  const { data, error } = await supabase.from('menus').update(menu).eq('menu_id', id)
+  const { data, error } = await supabase.from('menus').update(menu).eq('menu_id', id).select().single();
   return { data, error }
 }
 

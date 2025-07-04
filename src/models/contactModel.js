@@ -17,7 +17,7 @@ exports.getContactById = async (id) => {
 }
 
 exports.updateContact = async (id, contactData) => {
-    const { error } = await supabase.from('contacts').update(contactData).eq('id', id)
+    const { error } = await supabase.from('contacts').update(contactData).eq('id', id).select().single();
     return error
 }
 

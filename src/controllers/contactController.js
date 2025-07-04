@@ -1,10 +1,11 @@
 const contactModel = require('../models/contactModel')
 
 exports.createContact = async (req, res) => {
-  const { name, email, message } = req.body
+  const { name, email,phone, message } = req.body
 
   const { data: contactData, error: contactError } = await contactModel.insertContact({
     name,
+    phone,
     email,
     message,
   })
@@ -45,11 +46,12 @@ exports.getContactById = async (req, res) => {
 
 exports.updateContact = async (req, res) => {
   const { id } = req.params
-  const { name, email, message } = req.body
+  const { name, email,phone, message } = req.body
 
   const { data: contactData, error: contactError } = await contactModel.updateContact(id, {
     name,
     email,
+    phone,
     message,
   })
 

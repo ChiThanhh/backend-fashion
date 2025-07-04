@@ -11,12 +11,12 @@ exports.getPostById = async (id) => {
 };
 
 exports.createPost = async (post) => {
-  const { data, error } = await supabase.from('posts').insert(post);
+  const { data, error } = await supabase.from('posts').insert(post).select().single();
   return { data, error };
 };
 
 exports.updatePost = async (id, post) => {
-  const { data, error } = await supabase.from('posts').update(post).eq('post_id', id);
+  const { data, error } = await supabase.from('posts').update(post).eq('post_id', id).select().single();
   return { data, error };
 };
 

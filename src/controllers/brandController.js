@@ -33,7 +33,7 @@ exports.createBrand = async (req, res) => {
     if (error) {
       return res.status(400).json({ success: false, message: 'Tạo thương hiệu thất bại', error });
     }
-    return res.status(201).json({ success: true, message: 'Tạo thương hiệu thành công', data });
+    return res.status(201).json({ success: true, message: 'Tạo thương hiệu thành công', data: data });
   } catch (err) {
     console.error('Lỗi server:', err);
     return res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
