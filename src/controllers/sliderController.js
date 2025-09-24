@@ -1,69 +1,60 @@
-const sliderModel = require('../models/sliderModel');  // Thay 'topicModel' thành 'sliderModel'
+import { Slider } from "../models/sliderModel.js";
 
-exports.getSliders = async (req, res) => {
-  try {
-    const { data, error } = await sliderModel.getSliders();  // Thay 'getTopics' thành 'getSliders'
-    if (error) {
-      return res.status(400).json({ success: false, message: 'Lấy sliders thất bại', error });
-    }
-    return res.status(200).json({ success: true, message: 'Lấy sliders thành công', data });
-  } catch (err) {
-    console.error('Lỗi server:', err);
-    return res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
-  }
-};
+export const SliderController = {
+    async getAll(req, res) {
+        try {
+            const slider = await Slider.findAll();
+            return res.success(slider, "Lấy danh sách slider thành công!")
+        } catch (err) {
+            console.error(err);
+            res.error("Lỗi khi lấy danh sách slider!", "SERVER_ERROR", 500, err.message)
+        }
+    },
+    async getById(req, res) {
+        try {
+            const slider = await Slider.findById(req.params.id);
+            if (!slider) {
+                return res.error("Slider không tồn tại", "SLIDER_NOT_FOUND", 400);
+            }
+            return res.success(slider, "Lấy slider thành công!")
 
-exports.getSliderById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { data, error } = await sliderModel.getSliderById(id);  // Thay 'getTopicById' thành 'getSliderById'
-    if (error || !data) {
-      return res.status(404).json({ success: false, message: 'Không tìm thấy slider', error });
-    }
-    return res.status(200).json({ success: true, message: 'Lấy slider theo ID thành công', data });
-  } catch (err) {
-    console.error('Lỗi server:', err);
-    return res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
-  }
-};
+        } catch (err) {
+            console.error(err);
+            res.error("Lỗi khi lấy id slider", "SERVER_ERROR", 500, err.message)
+        }
+    },
+    async create(req, res) {
+        try {
+            const slider = await Slider.create(req.body);
+            return res.success(slider, "Tạo mới slider thành công", 201);
+        } catch (err) {
+            console.error(err);
+            res.error("Lỗi khi tạo mới slider", "SERVER_ERROR", 500, err.message)
+        }
+    },
+    async update(req, res) {
+        try {
+            const slider = await Slider.update(req.params.id, req.body);
+            if (!slider) {
+                return res.error("Slider không tồn tại", "SLIDER_NOT_FOUND", 400);
+            }
+            return res.success(slider, "Cập nhật slider thành công");
+        } catch (err) {
+            console.error(err);
+            res.error("Lỗi khi cập nhật slider", "SERVER_ERROR", 500, err.message);
+        }
+    },
+    async delete(req, res) {
+        try {
+            const slider = await Slider.delete(req.params.id);
+            if (!slider) {
+                return res.error("Không tìm thấy slider", "SLIDER_NOT_FOUND", 400);
+            }
+            return res.success(slider, "Xóa slider thành công");
+        } catch (err) {
+            console.error(err);
+            res.error("Lỗi khi xóa slider", "SERVER_ERROR", 500, err.message);
+        }
+    },
 
-exports.createSlider = async (req, res) => {
-  try {
-    const { data, error } = await sliderModel.createSlider(req.body);  // Thay 'createTopic' thành 'createSlider'
-    if (error) {
-      return res.status(400).json({ success: false, message: 'Tạo slider thất bại', error });
-    }
-    return res.status(201).json({ success: true, message: 'Tạo slider thành công', data });
-  } catch (err) {
-    console.error('Lỗi server:', err);
-    return res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
-  }
-};
-
-exports.updateSlider = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { data, error } = await sliderModel.updateSlider(id, req.body);  // Thay 'updateTopic' thành 'updateSlider'
-    if (error) {
-      return res.status(400).json({ success: false, message: 'Cập nhật slider thất bại', error });
-    }
-    return res.status(200).json({ success: true, message: 'Cập nhật slider thành công', data });
-  } catch (err) {
-    console.error('Lỗi server:', err);
-    return res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
-  }
-};
-
-exports.deleteSlider = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { data, error } = await sliderModel.deleteSlider(id);  // Thay 'deleteTopic' thành 'deleteSlider'
-    if (error) {
-      return res.status(400).json({ success: false, message: 'Xoá slider thất bại', error });
-    }
-    return res.status(200).json({ success: true, message: 'Xoá slider thành công', data });
-  } catch (err) {
-    console.error('Lỗi server:', err);
-    return res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
-  }
-};
+}

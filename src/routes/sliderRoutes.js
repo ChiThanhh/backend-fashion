@@ -1,11 +1,14 @@
-const express = require('express');
+import express from "express";
+
+import { authMiddleware } from "../middlewares/authMiddleware.js";
+import { SliderController } from "../controllers/sliderController.js";
+
 const router = express.Router();
-const sliderController = require('../controllers/sliderController');  
 
-router.get('/', sliderController.getSliders);  
-router.get('/:id', sliderController.getSliderById);  
-router.post('/', sliderController.createSlider);  
-router.put('/:id', sliderController.updateSlider);  
-router.delete('/:id', sliderController.deleteSlider);  
+router.get("/", SliderController.getAll);
+router.get("/:id", authMiddleware, SliderController.getById);
+router.post("/", authMiddleware, SliderController.create);
+router.put("/:id", authMiddleware, SliderController.update);
+router.delete("/:id", authMiddleware, SliderController.delete);
 
-module.exports = router;
+export default router;

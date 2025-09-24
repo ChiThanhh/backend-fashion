@@ -1,54 +1,66 @@
-const orderItemModel = require('../models/orderItemModel');
+import { OrderItemModel } from "../models/orderItemModel.js";
 
-exports.getOrderItems = async (req, res) => {
-  try {
-    const { data, error } = await orderItemModel.getOrderItems();
-    if (error) return res.status(400).json({ success: false, message: 'Lỗi lấy danh sách', error });
-    res.status(200).json({ success: true, message: 'Lấy danh sách thành công', data });
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
-  }
-};
+export const OrderItemController = {
+  async getAll(req, res) {
+    try {
+      const items = await OrderItemModel.findAll();
+      return res.success(items, "Lấy danh sách chi tiết đơn hàng thành công");
+    } catch (err) {
+      console.error(err);
+      return res.error("Lỗi khi lấy danh sách chi tiết đơn hàng", "SERVER_ERROR", 500, err.message);
+    }
+  },
 
-exports.getOrderItemById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { data, error } = await orderItemModel.getOrderItemById(id);
-    if (error || !data) return res.status(404).json({ success: false, message: 'Không tìm thấy mục đơn hàng', error });
-    res.status(200).json({ success: true, message: 'Lấy mục đơn hàng thành công', data });
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
-  }
-};
+  async getById(req, res) {
+    try {
+      const item = await OrderItemModel.findById(req.params.id);
+      if (!item) return res.error("Không tìm thấy chi tiết đơn hàng", "ORDER_ITEM_NOT_FOUND", 404);
+      return res.success(item, "Lấy chi tiết đơn hàng thành công");
+    } catch (err) {
+      console.error(err);
+      return res.error("Lỗi khi lấy chi tiết đơn hàng", "SERVER_ERROR", 500, err.message);
+    }
+  },
 
-exports.createOrderItem = async (req, res) => {
-  try {
-    const { data, error } = await orderItemModel.createOrderItem(req.body);
-    if (error) return res.status(400).json({ success: false, message: 'Tạo mục đơn hàng thất bại', error });
-    res.status(201).json({ success: true, message: 'Tạo mục đơn hàng thành công', data });
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
-  }
-};
+  async getByOrder(req, res) {
+    try {
+      const items = await OrderItemModel.findByOrder(req.params.orderId);
+      return res.success(items, "Lấy danh sách chi tiết đơn hàng theo đơn thành công");
+    } catch (err) {
+      console.error(err);
+      return res.error("Lỗi khi lấy chi tiết đơn hàng theo đơn", "SERVER_ERROR", 500, err.message);
+    }
+  },
 
-exports.updateOrderItem = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { data, error } = await orderItemModel.updateOrderItem(id, req.body);
-    if (error) return res.status(400).json({ success: false, message: 'Cập nhật mục đơn hàng thất bại', error });
-    res.status(200).json({ success: true, message: 'Cập nhật mục đơn hàng thành công', data });
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
-  }
-};
+  async create(req, res) {
+    try {
+      const item = await OrderItemModel.create(req.body);
+      return res.success(item, "Tạo chi tiết đơn hàng thành công", 201);
+    } catch (err) {
+      console.error(err);
+      return res.error("Lỗi khi tạo chi tiết đơn hàng", "SERVER_ERROR", 500, err.message);
+    }
+  },
 
-exports.deleteOrderItem = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { data, error } = await orderItemModel.deleteOrderItem(id);
-    if (error) return res.status(400).json({ success: false, message: 'Xoá mục đơn hàng thất bại', error });
-    res.status(200).json({ success: true, message: 'Xoá mục đơn hàng thành công', data });
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
+  async update(req, res) {
+    try {
+      const item = await OrderItemModel.update(req.params.id, req.body);
+      if (!item) return res.error("Không tìm thấy chi tiết đơn hàng", "ORDER_ITEM_NOT_FOUND", 404);
+      return res.success(item, "Cập nhật chi tiết đơn hàng thành công");
+    } catch (err) {
+      console.error(err);
+      return res.error("Lỗi khi cập nhật chi tiết đơn hàng", "SERVER_ERROR", 500, err.message);
+    }
+  },
+
+  async delete(req, res) {
+    try {
+      const item = await OrderItemModel.delete(req.params.id);
+      if (!item) return res.error("Không tìm thấy chi tiết đơn hàng", "ORDER_ITEM_NOT_FOUND", 404);
+      return res.success(null, "Xóa chi tiết đơn hàng thành công");
+    } catch (err) {
+      console.error(err);
+      return res.error("Lỗi khi xóa chi tiết đơn hàng", "SERVER_ERROR", 500, err.message);
+    }
   }
 };

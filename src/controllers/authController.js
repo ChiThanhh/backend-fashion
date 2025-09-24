@@ -1,146 +1,125 @@
-// controllers/authController.js
-const supabase = require('../config/supabaseClient')
-const userModel = require('../models/userModel')
+import bcrypt from "bcrypt";
+import { UserModel } from "../models/userModel.js";
+import {
+  signAccessToken,
+  signRefreshToken,
+  saveRefreshToken,
+  revokeRefreshToken,
+  findRefreshToken,
+} from "../utils/tokens.js";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+dotenv.config();
+
+const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
 
 // Đăng ký
-exports.register = async (req, res) => {
-  const { email, password, fullname, phone, address } = req.body
-
-  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { fullname }, // Lưu fullname vào user_metadata
-    },
-  })
-
-  if (signUpError) return res.status(400).json({ error: signUpError.message })
-
-  const user = signUpData.user
-  // Gọi model để insert vào bảng users
-  const insertError = await userModel.insertUserProfile({
-    id: user.id,
-    email: user.email,
-    fullname: user.user_metadata.fullname,
-  })
-
-  if (insertError) return res.status(500).json({ error: insertError.message })
-
-  return res.status(201).json({
-    message: 'User registered successfully',
-    user: { id: user.id, email, fullname }
-  })
-}
-// Đăng nhập
-exports.login = async (req, res) => {
-  const { email, password } = req.body
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-
-  if (error) return res.status(400).json({ error: error.message })
-  res.status(200).json({ message: 'Login successful', session: data.session })
-}
-exports.forgotPassword = async (req, res) => {
-  const { email } = req.body
-  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: 'http://localhost:5173/reset-password',
-  })
-  if (error) return res.status(400).json({ error: error.message })
-  res.status(200).json({ message: 'Password reset email sent', data })
-}
-exports.resetPassword = async (req, res) => {
-  const { token, password } = req.body;
-
-  if (!token || !password) {
-    return res.status(400).json({ error: 'Token and password are required.' });
-  }
-
+export async function register(req, res) {
   try {
-    // Gọi API reset password của Supabase
-    const { data, error } = await supabase.auth.api.updateUser(token, {
-      password: password
+    const { email, password, full_name } = req.body;
+    if (!email || !password) {
+      return res.error("Email và mật khẩu là bắt buộc", "VALIDATION_ERROR", 400);
+    }
+
+    const existing = await UserModel.findByEmail(email);
+    if (existing) {
+      return res.error("Email đã tồn tại", "EMAIL_ALREADY_EXISTS", 400);
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = await UserModel.create({ email, passwordHash, full_name });
+
+    return res.success(user, "Đăng ký người dùng thành công", 201);
+  } catch (err) {
+    console.error(err);
+    return res.error("Lỗi server khi đăng ký", "SERVER_ERROR", 500, err.message);
+  }
+}
+
+// Đăng nhập
+export async function login(req, res) {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.error("Email và mật khẩu là bắt buộc", "VALIDATION_ERROR", 400);
+    }
+
+    const user = await UserModel.findByEmail(email);
+    if (!user) {
+      return res.error("Người dùng không tồn tại", "USER_NOT_FOUND", 404);
+    }
+
+    const match = await bcrypt.compare(password, user.password_hash);
+    if (!match) {
+      return res.error("Thông tin đăng nhập không hợp lệ", "INVALID_CREDENTIALS", 401);
+    }
+    const accessToken = signAccessToken({ userId: user.user_id});
+    const { token: refreshToken } = signRefreshToken({ userId: user.user_id });
+
+    // lưu refresh token vào database
+    await saveRefreshToken(user.user_id, refreshToken);
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      // secure: true, // bật khi chạy prod HTTPS
+      maxAge: 1000 * 60 * 60 * 24 * 30, // 30 ngày
+      sameSite: "lax",
     });
 
-    // Kiểm tra lỗi trả về từ Supabase
-    if (error) {
-      return res.status(400).json({ error: error.message });
-    }
-
-    // Trả về phản hồi thành công
-    return res.status(200).json({ message: 'Password reset successful', data });
-  } catch (error) {
-    return res.status(500).json({ error: 'Internal server error', details: error.message });
-  }
-};
-
-
-// Lấy thông tin user hiện tại
-exports.getProfile = async (req, res) => {
-  const { authorization } = req.headers
-
-  if (!authorization) return res.status(401).json({ error: 'No token provided' })
-
-  const token = authorization.replace('Bearer ', '')
-
-  const supabaseWithToken = require('@supabase/supabase-js').createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_KEY,
-    {
-      global: {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
-    }
-  )
-
-  const { data: { user }, error } = await supabaseWithToken.auth.getUser()
-
-  if (error) return res.status(400).json({ error: error.message })
-
-  res.status(200).json({ user })
-}
-
-
-// Lấy tất cả user
-exports.getAllUser = async (req, res) => {
-  try {
-    const { data, error } = await userModel.getUser();
-    if (error) {
-      return res.status(400).json({ success: false, message: 'Lấy user thất bại', error });
-    }
-    return res.status(200).json({ success: true, message: 'Lấy user thành công', data });
+    return res.success({
+      accessToken, user
+    }, "Đăng nhập thành công");
   } catch (err) {
-    console.error('Lỗi server:', err);
-    return res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
+    console.error(err);
+    return res.error("Lỗi server khi đăng nhập", "SERVER_ERROR", 500, err.message);
   }
 }
 
-
-// Lấy user theo ID
-exports.getUserById = async (req, res) => {
-  const { id } = req.params
-  const { data, error } = await userModel.getUserById(id)
-  if (error) return res.status(404).json({ error: 'User not found' })
-  res.status(200).json({ user: data })
+// Đăng xuất
+export async function logout(req, res) {
+  try {
+    const token = req.cookies?.refreshToken || req.body?.refreshToken;
+    if (token) {
+      await revokeRefreshToken(token);
+      res.clearCookie("refreshToken");
+    }
+    return res.success(null, "Đăng xuất thành công");
+  } catch (err) {
+    console.error(err);
+    return res.error("Lỗi server khi đăng xuất", "SERVER_ERROR", 500, err.message);
+  }
 }
 
-// Cập nhật user theo ID
-exports.updateUserById = async (req, res) => {
-  const { id } = req.params
-  const updateData = req.body
+// Refresh token
+export async function refreshTokenHandler(req, res) {
+  try {
+    const token = req.cookies?.refreshToken || req.body?.refreshToken;
+    if (!token) {
+      return res.error("Thiếu refresh token", "MISSING_REFRESH_TOKEN", 401);
+    }
 
-  const { data, error } = await userModel.updateUserById(id, updateData)
-  if (error) return res.status(400).json({ error: error.message })
+    // check DB
+    const dbTok = await findRefreshToken(token);
+    if (!dbTok || dbTok.revoked) {
+      return res.error("Refresh token không hợp lệ", "INVALID_REFRESH_TOKEN", 401);
+    }
 
-  res.status(200).json({ message: 'User updated successfully', user: data })
-}
+    // verify signature
+    let payload;
+    try {
+      payload = jwt.verify(token, REFRESH_SECRET);
+    } catch (err) {
+      return res.error("Refresh token không hợp lệ", "INVALID_REFRESH_TOKEN", 401);
+    }
 
-// Xóa user theo ID
-exports.deleteUserById = async (req, res) => {
-  const { id } = req.params
+    const userId = payload.userId;
+    const accessToken = signAccessToken({ userId });
 
-  const { data, error } = await userModel.deleteUserById(id)
-  if (error) return res.status(400).json({ error: error.message })
-
-  res.status(200).json({ message: 'User deleted successfully', user: data })
+    // ở đây em giữ nguyên refresh token, nếu muốn rotate có thể cấp token mới
+    return res.success({ accessToken }, "Refresh token thành công");
+  } catch (err) {
+    console.error(err);
+    return res.error("Lỗi server khi refresh token", "SERVER_ERROR", 500, err.message);
+  }
 }

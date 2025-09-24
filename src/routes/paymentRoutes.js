@@ -1,11 +1,27 @@
-const express = require('express');
+import express from "express";
+import { PaymentController } from "../controllers/paymentController.js";
+import { authMiddleware } from "../middlewares/authMiddleware.js"; // nếu cần auth
+
+
 const router = express.Router();
-const paymentController = require('../controllers/paymentController');
 
-router.get('/', paymentController.getPayments);
-router.get('/:id', paymentController.getPaymentById);
-router.post('/', paymentController.createPayment);
-router.put('/:id', paymentController.updatePayment);
-router.delete('/:id', paymentController.deletePayment);
+// Public/Authenticated actions depending on your policy:
+// Lấy tất cả payments (admin)
+router.get("/", authMiddleware,PaymentController.getAll);
 
-module.exports = router;
+// Lấy payment theo id (admin or owner)
+router.get("/:id", authMiddleware, PaymentController.getById);
+
+// Lấy payments theo order
+router.get("/order/:orderId", authMiddleware, PaymentController.getByOrder);
+
+// Tạo payment (khi checkout / callback)
+router.post("/", authMiddleware, PaymentController.create);
+
+// Update payment (ví dụ cập nhật status từ webhook)
+router.put("/:id", authMiddleware,PaymentController.update);
+
+// Xóa payment (admin)
+router.delete("/:id", authMiddleware, PaymentController.delete);
+
+export default router;

@@ -1,69 +1,62 @@
-const brandModel = require('../models/brandModel');
+import { BrandModel } from "../models/brandModel.js";
 
-exports.getBrands = async (req, res) => {
-  try {
-    const { data, error } = await brandModel.getBrands();
-    if (error) {
-      return res.status(400).json({ success: false, message: 'Lấy danh sách thương hiệu thất bại', error });
+export const BrandController = {
+  async getAll(req, res) {
+    try {
+      const brands = await BrandModel.findAll();
+      return res.success(brands, "Lấy danh sách thương hiệu thành công");
+    } catch (err) {
+      console.error(err);
+      return res.error("Lỗi server khi lấy danh sách thương hiệu", "SERVER_ERROR", 500, err.message);
     }
-    return res.status(200).json({ success: true, message: 'Lấy danh sách thương hiệu thành công', data });
-  } catch (err) {
-    console.error('Lỗi server:', err);
-    return res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
-  }
-};
+  },
 
-exports.getBrandById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { data, error } = await brandModel.getBrandById(id);
-    if (error || !data) {
-      return res.status(404).json({ success: false, message: 'Không tìm thấy thương hiệu', error });
+  async getById(req, res) {
+    try {
+      const brand = await BrandModel.findById(req.params.id);
+      if (!brand) {
+        return res.error("Không tìm thấy thương hiệu", "BRAND_NOT_FOUND", 404);
+      }
+      return res.success(brand, "Lấy thương hiệu thành công");
+    } catch (err) {
+      console.error(err);
+      return res.error("Lỗi server khi lấy thương hiệu", "SERVER_ERROR", 500, err.message);
     }
-    return res.status(200).json({ success: true, message: 'Lấy thương hiệu theo ID thành công', data });
-  } catch (err) {
-    console.error('Lỗi server:', err);
-    return res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
-  }
-};
+  },
 
-exports.createBrand = async (req, res) => {
-  try {
-    const { data, error } = await brandModel.createBrand(req.body);
-    if (error) {
-      return res.status(400).json({ success: false, message: 'Tạo thương hiệu thất bại', error });
+  async create(req, res) {
+    try {
+      const brand = await BrandModel.create(req.body);
+      return res.success(brand, "Tạo thương hiệu thành công", 201);
+    } catch (err) {
+      console.error(err);
+      return res.error("Lỗi server khi tạo thương hiệu", "SERVER_ERROR", 500, err.message);
     }
-    return res.status(201).json({ success: true, message: 'Tạo thương hiệu thành công', data: data });
-  } catch (err) {
-    console.error('Lỗi server:', err);
-    return res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
-  }
-};
+  },
 
-exports.updateBrand = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { data, error } = await brandModel.updateBrand(id, req.body);
-    if (error) {
-      return res.status(400).json({ success: false, message: 'Cập nhật thương hiệu thất bại', error });
+  async update(req, res) {
+    try {
+      const brand = await BrandModel.update(req.params.id, req.body);
+      if (!brand) {
+        return res.error("Không tìm thấy thương hiệu để cập nhật", "BRAND_NOT_FOUND", 404);
+      }
+      return res.success(brand, "Cập nhật thương hiệu thành công");
+    } catch (err) {
+      console.error(err);
+      return res.error("Lỗi server khi cập nhật thương hiệu", "SERVER_ERROR", 500, err.message);
     }
-    return res.status(200).json({ success: true, message: 'Cập nhật thương hiệu thành công', data });
-  } catch (err) {
-    console.error('Lỗi server:', err);
-    return res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
-  }
-};
+  },
 
-exports.deleteBrand = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { data, error } = await brandModel.deleteBrand(id);
-    if (error) {
-      return res.status(400).json({ success: false, message: 'Xoá thương hiệu thất bại', error });
+  async delete(req, res) {
+    try {
+      const brand = await BrandModel.delete(req.params.id);
+      if (!brand) {
+        return res.error("Không tìm thấy thương hiệu để xóa", "BRAND_NOT_FOUND", 404);
+      }
+      return res.success(null, "Xóa thương hiệu thành công");
+    } catch (err) {
+      console.error(err);
+      return res.error("Lỗi server khi xóa thương hiệu", "SERVER_ERROR", 500, err.message);
     }
-    return res.status(200).json({ success: true, message: 'Xoá thương hiệu thành công', data });
-  } catch (err) {
-    console.error('Lỗi server:', err);
-    return res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
-  }
+  },
 };

@@ -1,26 +1,42 @@
-const supabase = require('../config/supabaseClient');
+import pool from "../config/db.js";
 
-exports.getBrands = async () => {
-  const { data, error } = await supabase.from('brands').select('*');
-  return { data, error };
-};
+export const BrandModel = {
+    async findAll() {
+        const res = await pool.query("SELECT * FROM brands ORDER BY created_at DESC");
+        return res.rows;
+    },
+    async findById(id) {
+        const res = await pool.query("SELECT * FROM brands WHERE brand_id = $1", [id]);
+        return res.rows[0];
+    },
+    async create({ name, slug }) {
+        const res = await pool.query(
+            "INSERT INTO brands (name, slug) VALUES ($1, $2) RETURNING *",
+            [name, slug]
+        );
+        return res.rows[0];
+    },
 
-exports.getBrandById = async (id) => {
-  const { data, error } = await supabase.from('brands').select('*').eq('brand_id', id);
-  return { data, error };
-};
+    async update(id, patch) {
+        const fields = [];
+        const values = [];
+        let idx = 1;
+        for (const key of ["name", "slug"]) {
+            if (patch[key] !== undefined) {
+                fields.push(`${key} = $${idx}`);
+                values.push(patch[key]);
+                idx++;
+            }
+        }
+        if (fields.length === 0) return this.findById(id);
+        values.push(id);
+        const q = `UPDATE brands SET ${fields.join(", ")}, updated_at = now() WHERE brand_id = $${idx} RETURNING *`;
+        const res = await pool.query(q, values);
+        return res.rows[0];
+    },
 
-exports.createBrand = async (brand) => {
-  const { data, error } = await supabase.from('brands').insert(brand).select().single();
-  return { data, error };
-};
-
-exports.updateBrand = async (id, brand) => {
-  const { data, error } = await supabase.from('brands').update(brand).eq('brand_id', id).select().single();
-  return { data, error };
-};
-
-exports.deleteBrand = async (id) => {
-  const { data, error } = await supabase.from('brands').delete().eq('brand_id', id);
-  return { data, error };
-};
+    async delete(id) {
+        const res = await pool.query("DELETE FROM brands WHERE brand_id = $1 RETURNING *", [id]);
+        return res.rows[0] || null;
+    }
+}

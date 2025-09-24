@@ -1,69 +1,62 @@
-const categoryModel = require('../models/categoryModel');
+import { CategoryModel } from "../models/categoryModel.js";
 
-exports.getCategories = async (req, res) => {
-  try {
-    const { data, error } = await categoryModel.getCategories();
-    if (error) {
-      return res.status(400).json({ success: false, message: 'Lấy danh mục thất bại', error });
+export const CategoryController = {
+  async getAll(req, res) {
+    try {
+      const categories = await CategoryModel.findAll();
+      return res.success(categories, "Lấy danh mục thành công");
+    } catch (err) {
+      console.error(err);
+      return res.error("Lỗi server khi lấy danh mục", "SERVER_ERROR", 500, err.message);
     }
-    return res.status(200).json({ success: true, message: 'Lấy danh mục thành công', data });
-  } catch (err) {
-    console.error('Lỗi server:', err);
-    return res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
-  }
-};
+  },
 
-exports.getCategoryById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { data, error } = await categoryModel.getCategoryById(id);
-    if (error || !data) {
-      return res.status(404).json({ success: false, message: 'Không tìm thấy danh mục', error });
+  async getById(req, res) {
+    try {
+      const category = await CategoryModel.findById(req.params.id);
+      if (!category) {
+        return res.error("Không tìm thấy danh mục", "CATEGORY_NOT_FOUND", 404);
+      }
+      return res.success(category, "Lấy chi tiết danh mục thành công");
+    } catch (err) {
+      console.error(err);
+      return res.error("Lỗi server khi lấy danh mục", "SERVER_ERROR", 500, err.message);
     }
-    return res.status(200).json({ success: true, message: 'Lấy danh mục theo ID thành công', data });
-  } catch (err) {
-    console.error('Lỗi server:', err);
-    return res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
-  }
-};
+  },
 
-exports.createCategory = async (req, res) => {
-  try {
-    const { data, error } = await categoryModel.createCategory(req.body);
-    if (error) {
-      return res.status(400).json({ success: false, message: 'Tạo danh mục thất bại', error });
+  async create(req, res) {
+    try {
+      const category = await CategoryModel.create(req.body);
+      return res.success(category, "Tạo mới danh mục thành công", 201);
+    } catch (err) {
+      console.error(err);
+      return res.error("Lỗi server khi tạo danh mục", "SERVER_ERROR", 500, err.message);
     }
-    return res.status(201).json({ success: true, message: 'Tạo danh mục thành công', data });
-  } catch (err) {
-    console.error('Lỗi server:', err);
-    return res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
-  }
-};
+  },
 
-exports.updateCategory = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { data, error } = await categoryModel.updateCategory(id, req.body);
-    if (error) {
-      return res.status(400).json({ success: false, message: 'Cập nhật danh mục thất bại', error });
+  async update(req, res) {
+    try {
+      const category = await CategoryModel.update(req.params.id, req.body);
+      if (!category) {
+        return res.error("Không tìm thấy danh mục", "CATEGORY_NOT_FOUND", 404);
+      }
+      return res.success(category, "Cập nhật danh mục thành công");
+    } catch (err) {
+      console.error(err);
+      return res.error("Lỗi server khi cập nhật danh mục", "SERVER_ERROR", 500, err.message);
     }
-    return res.status(200).json({ success: true, message: 'Cập nhật danh mục thành công', data });
-  } catch (err) {
-    console.error('Lỗi server:', err);
-    return res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
-  }
-};
+  },
 
-exports.deleteCategory = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { data, error } = await categoryModel.deleteCategory(id);
-    if (error) {
-      return res.status(400).json({ success: false, message: 'Xoá danh mục thất bại', error });
+  async delete(req, res) {
+    try {
+      const category = await CategoryModel.delete(req.params.id);
+      if (!category) {
+        return res.error("Không tìm thấy danh mục", "CATEGORY_NOT_FOUND", 404);
+      }
+      return res.success(null, "Xóa danh mục thành công");
+    } catch (err) {
+      console.error(err);
+      return res.error("Lỗi server khi xóa danh mục", "SERVER_ERROR", 500, err.message);
     }
-    return res.status(200).json({ success: true, message: 'Xoá danh mục thành công', data });
-  } catch (err) {
-    console.error('Lỗi server:', err);
-    return res.status(500).json({ success: false, message: 'Lỗi server', error: err.message });
-  }
+  },
 };

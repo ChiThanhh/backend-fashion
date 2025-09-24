@@ -1,70 +1,83 @@
 // app.js
-const express = require('express')
-const cors = require('cors')
-const authRoutes = require('./src/routes/authRoutes')
-const contactRoutes = require('./src/routes/contactRoutes')
-const menuRoutes = require('./src/routes/menuRoutes')
-const categoryRoutes = require('./src/routes/categoryRoutes')
-const topicRoutes = require('./src/routes/topicRoutes')
-const postRoutes = require('./src/routes/postRoutes')
-const productRoutes = require('./src/routes/productRoutes')
-const brandRoutes = require('./src/routes/brandRoutes')
-const sliderRoutes = require('./src/routes/sliderRoutes')
-const bannerRoutes = require('./src/routes/bannerRoutes')
-const favoriteProductRoutes = require('./src/routes/favoriteProductRoutes')
-const cartRoutes = require('./src/routes/cartRoutes')
-const checkoutRoutes = require('./src/routes/checkoutRoutes')
-const orderRoutes = require('./src/routes/orderRoutes')
-const orderItemRoutes = require('./src/routes/orderItemRoutes')
-const shippingRoutes = require('./src/routes/shippingRoutes')
-const paymentRoutes = require('./src/routes/paymentRoutes')
-const settingRoutes = require('./src/routes/settingRoutes')
-const fileRoutes = require('./src/routes/fileRoutes');
-require('dotenv').config()
+import express from "express";
+import cookieParser from "cookie-parser";
+import authRoutes from "./src/routes/authRoutes.js";
+import userRoutes from "./src/routes/userRoutes.js";
+import roleRoutes from "./src/routes/roleRoutes.js";
+import categoryRoutes from "./src/routes/categoryRoutes.js";
+import brandRoutes from "./src/routes/brandRoutes.js";
+import colorRoutes from "./src/routes/colorRoutes.js";
+import sizeRoutes from "./src/routes/sizeRoutes.js";
+import addressRoutes from "./src/routes/addressRoutes.js";
+import productRoutes from "./src/routes/productRoutes.js";
+import variantRoutes from "./src/routes/variantRoutes.js";
+import priceRoutes from "./src/routes/priceRoutes.js";
+import imageRoutes from "./src/routes/imageRoutes.js";
+import cartRoutes from "./src/routes/cartRoutes.js";
+import wishlistRoutes from "./src/routes/wishlistRoutes.js";
+import orderRoutes from "./src/routes/orderRoutes.js";
+import orderItemRoutes from "./src/routes/orderItemRoutes.js";
+import paymentRoutes from "./src/routes/paymentRoutes.js";
+import shipmentRoutes from "./src/routes/shipmentRoutes.js";
+import returnRoutes from "./src/routes/returnRoutes.js";
+import refundRoutes from "./src/routes/refundRoutes.js";
+import reviewRoutes from "./src/routes/reviewRoutes.js";
+import inventoryRoutes from "./src/routes/inventoryRoutes.js";
+import warehouseRoutes from "./src/routes/warehouseRoutes.js";
+import couponRoutes from "./src/routes/couponRoutes.js";
+import promotionRoutes from "./src/routes/promotionRoutes.js";
+import attributeRoutes from "./src/routes/attributeRoutes.js";
+import attributeValueRoutes from "./src/routes/attributeValueRoutes.js";
+import auditLogRoutes from "./src/routes/auditLogRoutes.js";
+import webhookRoutes from "./src/routes/webhookRoutes.js";
+import sliderRoutes from "./src/routes/sliderRoutes.js";
+import uploadRoute  from "./src/routes/uploadRoutes.js";
 
-const app = express()
+import { responseMiddleware } from "./src/middlewares/responseMiddleware.js";
+import cors from "cors";
+const app = express();
+app.use(cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
-app.use(cors())
-app.use(express.json())
+app.use(express.json());
+app.use(cookieParser());
+app.use(responseMiddleware);
+// mount routes
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/roles", roleRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/brands", brandRoutes);
+app.use("/api/colors", colorRoutes);
+app.use("/api/sizes", sizeRoutes);
+app.use("/api/addresses", addressRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/variants", variantRoutes);
+app.use("/api/prices", priceRoutes);
+app.use("/api/images", imageRoutes);
+app.use("/api/carts", cartRoutes);
+app.use("/api/wishlists", wishlistRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/order-items", orderItemRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/shipments", shipmentRoutes);
+app.use("/api/returns", returnRoutes);
+app.use("/api/refunds", refundRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/inventory", inventoryRoutes);
+app.use("/api/warehouses", warehouseRoutes);
+app.use("/api/coupons", couponRoutes);
+app.use("/api/promotions", promotionRoutes);
+app.use("/api/attributes", attributeRoutes);
+app.use("/api/attribute-values", attributeValueRoutes);
+app.use("/api/audit-logs", auditLogRoutes);
+app.use("/api/webhooks", webhookRoutes);
+app.use("/api/sliders", sliderRoutes);
+app.use("/api/upload", uploadRoute);  
+// basic health
+app.get("/", (req, res) => res.json({ ok: true }));
 
-app.use('/api/auth', authRoutes)
-app.use('/api/contacts', contactRoutes)
-app.use('/api/menu', menuRoutes)
-app.use('/api/category', categoryRoutes)
-app.use('/api/brand', brandRoutes)
-app.use('/api/topic', topicRoutes)
-app.use('/api/post', postRoutes)
-app.use('/api/product', productRoutes)
-app.use('/api/banner', bannerRoutes)
-app.use('/api/slider', sliderRoutes)
-app.use('/api/cart', cartRoutes)
-app.use('/api/favorite', favoriteProductRoutes)
-app.use('/api/checkout', checkoutRoutes)
-app.use('/api/order', orderRoutes)
-app.use('/api/order-detail', orderItemRoutes)
-app.use('/api/shipping', shippingRoutes)
-app.use('/api/payment', paymentRoutes)
-app.use('/api/setting', settingRoutes)
-app.use('/api/file', fileRoutes)
-
-
-
-// Middleware xử lý lỗi 404 (Not Found)
-app.use((req, res, next) => {
-    res.status(404).json({
-        success: false,
-        message: 'API route not found'
-    });
-});
-
-// Middleware xử lý lỗi chung (500)
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({
-        success: false,
-        message: 'Internal Server Error',
-        error: err.message
-    });
-});
-
-module.exports = app
+export default app;

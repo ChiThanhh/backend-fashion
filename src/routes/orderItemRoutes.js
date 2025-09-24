@@ -1,11 +1,25 @@
-const express = require('express');
+import express from "express";
+import { OrderItemController } from "../controllers/orderItemController.js";
+import { authMiddleware } from "../middlewares/authMiddleware.js";
+
 const router = express.Router();
-const orderItemController = require('../controllers/orderItemController');
 
-router.get('/', orderItemController.getOrderItems);
-router.get('/:id', orderItemController.getOrderItemById);
-router.post('/', orderItemController.createOrderItem);
-router.put('/:id', orderItemController.updateOrderItem);
-router.delete('/:id', orderItemController.deleteOrderItem);
+// Get all order items
+router.get("/", authMiddleware, OrderItemController.getAll);
 
-module.exports = router;
+// Get order item by id
+router.get("/:id", authMiddleware, OrderItemController.getById);
+
+// Get all items of a specific order
+router.get("/order/:orderId", authMiddleware, OrderItemController.getByOrder);
+
+// Create order item
+router.post("/", authMiddleware, OrderItemController.create);
+
+// Update order item
+router.put("/:id", authMiddleware, OrderItemController.update);
+
+// Delete order item
+router.delete("/:id", authMiddleware, OrderItemController.delete);
+
+export default router;
